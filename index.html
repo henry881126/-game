@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<style type="text/css">
+ul {
+    width: 456px;
+    list-style: none;
+    margin: 4em auto;
+}
+
+ul>li {
+    width: 150px;
+    height: 150px;
+    border: 1px solid red;
+    float: left;
+}
+
+#canvas,
+button {
+    display: none;
+}
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="150" height="150"></canvas>
+    <ul id="game">
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+        <li><img src="" alt=""></li>
+    </ul>
+    <div class="button">
+        <p>恭喜通关</p>
+        <button>下一关</button>
+    </div>
+    <script type="text/javascript">
+    var times = 1;
+
+    function Puzzle() {
+        this.canvas = document.getElementById('canvas');
+        this.cxt = this.canvas.getContext('2d');
+        this.imgList = document.querySelectorAll('img');
+        this.imgArr = [].slice.call(this.imgList);
+        this.img = './img/1.jpg'
+    }
+    Puzzle.prototype = {
+        init: function(url) {
+            var image = new Image();
+            image.src = url;
+            image.setAttribute('crossOrigin', 'anonymous');
+            var s = this;
+            image.onload = function() {
+                s.randomImg();
+                s.renderImg(image);
+                s.dragEvent();
+            }
+        },
+        // canvas绘图
+        renderImg: function(image) {
+            var index = 0;
+            for (var i = 0; i < 3; i++) { //y
+                for (var j = 0; j < 3; j++) { //x
+                    this.cxt.drawImage(image, 300 * j, 300 * i, 300, 300, 0, 0, 150, 150);
+                    this.imgArr[index].src = this.canvas.toDataURL("image/jpeg");
+                    this.imgArr[index].id = index;
+                    index++;
+                }
+            }
+        },
+        // 随机排序
+        randomImg: function() {
+            this.imgArr.sort(function() {
+                return Math.random() - Math.random()
+            })
+        },
+        // 拖拽时间
+        dragEvent: function() {
+
+            var contain = document.querySelector("#game")
+
+            var right = this.right;
+            contain.addEventListener("dragenter", function(event) {
+                // 阻止浏览器默认事件
+                event.preventDefault();
+            }, false);
+
+            contain.addEventListener("dragover", function(event) {
+                // 阻止浏览器默认事件
+                event.preventDefault();
+            }, false);
+
+            contain.addEventListener('dragstart', function(e) {
+
+                var target = e.target;
+
+                if (target.tagName.toLowerCase() == 'img') {
+                    e.dataTransfer.setData('id', e.target.id)
+                }
+            });
+
+            contain.addEventListener('drop', function(e) {
+                e.preventDefault();
+                var target = e.target;
+                if (target.tagName.toLowerCase() == 'img') {
+                    // 当前值
+                    var originObj = document.getElementById(e.dataTransfer.getData('id'));
+                    var cache = {
+                        'src': originObj.src,
+                        'id': originObj.id
+                    }
+                    var endObj = e.target;
+                    originObj.src = endObj.src;
+                    endObj.src = cache.src;
+                    originObj.id = endObj.id;
+                    endObj.id = cache.id;
+
+                    setTimeout(function() {
+                        right();
+
+                    }, 2000)
+                }
+            })
+        },
+        // 判断是否正确
+        right: function() {
+            var imgs = document.querySelectorAll('ul img');
+            var s = '';
+            for (var i = 0; i < imgs.length; i++) {
+
+                s += imgs[i].id;
+            }
+
+            // var init = this.Puzzle.prototype.init;
+
+            if (s == '012345678') {
+                var btn = document.querySelector('.button');
+                btn.style.display = 'block';
+               
+
+            }
+        }
+
+    };
+    var puzzle = new Puzzle();
+    puzzle.init('./img/1.jpg');
+    var btn = document.querySelector('.button');
+    btn.addEventListener('click', function() {
+        if (times >= 12) {
+            alert('玩完了找亨利去')
+            return
+        }
+        let puzzle = new Puzzle();
+        times = times + 1;
+        puzzle.init('./img/' + times + '.jpg');
+        btn.style.display = 'none';
+    })
+    </script>
+</body>
+
+</html>
